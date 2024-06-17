@@ -38,7 +38,8 @@ jobs:
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)')
         PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
         ACCESS_TOKEN=$(gcloud auth print-access-token)
+        RESOURCE_URL="https://gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
         curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
-          "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=resourceUrl%3D%22https://$IMAGE_URI%40$DIGEST%22%20AND%20kind%3DVULNERABILITY" \
+          "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=resourceUrl=\"$RESOURCE_URL\"%20AND%20kind=\"VULNERABILITY\"" \
           | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
