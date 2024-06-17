@@ -4,14 +4,20 @@ const port = process.env.PORT || 8080;
 const mysql = require('mysql');
 
 // Create a connection to the database
-const connection = mysql.createConnection( {
+const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'password',
   database: 'test'
 });
 
-connection.connect();
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database:', err.stack);
+    return;
+  }
+  console.log('Connected to the database as id', connection.threadId);
+});
 
 app.get('/', (req, res) => {
   res.send('Hello, World!');
@@ -20,13 +26,17 @@ app.get('/', (req, res) => {
 // Vulnerable endpoint
 app.get('/user', (req, res) => {
   const userId = req.query.id;
-  const query = S`SELECT * FROM users WHERE id = ${userId}S`; // SQL injection vulnerability
+  const query = `SELECT * FROM users WHERE id = ${mysql.escape(userId)}`; // Still vulnerable to SQL injection
   connection.query(query, (error, results) => {
-    if (error) throw error;
-    res.send(results);
+    if (error) {
+      console.error('Error executing query:', error);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json(results);
   });
 });
 
-app.listen[port] () => {
+app.listen(port, () => {
   console.log(`App listening at http://localhost:${port}`);
 });
