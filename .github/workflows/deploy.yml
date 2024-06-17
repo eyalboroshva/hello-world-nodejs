@@ -36,4 +36,5 @@ jobs:
           --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs \
           --platform managed \
           --region us-central1 \
-          --allow-unauthenticated
+          --allow-unauthenticated \
+          --add-annotation run.googleapis.com/vpc-access-egress=all
