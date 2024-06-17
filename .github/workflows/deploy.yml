@@ -35,7 +35,9 @@ jobs:
     - name: Get Vulnerability Report
       run: |
         IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
-        gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)' || exit 1
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)')
-        gcloud artifacts docker images describe $IMAGE_URI@$DIGEST --format=json | jq '.image_summary.vulnerability' > vulnerability_report.json
+        PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+        curl -s -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+          "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=resourceUrl%3D%22https://$IMAGE_URI@$DIGEST%22&kind=VULNERABILITY" \
+          | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
