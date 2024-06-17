@@ -33,11 +33,14 @@ jobs:
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
 
     - name: Get Vulnerability Report
+      env:
+        ACCESS_TOKEN: ${{ secrets.GCP_ACCESS_TOKEN }}
       run: |
         IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)')
         PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-        curl -s -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
           "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=resourceUrl%3D%22https://$IMAGE_URI%40$DIGEST%22%20AND%20kind%3D%22VULNERABILITY%22" \
           | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
