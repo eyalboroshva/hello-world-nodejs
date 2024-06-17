@@ -39,7 +39,8 @@ jobs:
         PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
         ACCESS_TOKEN=$(gcloud auth print-access-token)
         RESOURCE_URL="https://gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
+        FILTER="resourceUrl=\"$RESOURCE_URL\" AND kind=\"VULNERABILITY\""
         curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
-          "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=resourceUrl=\"$RESOURCE_URL\"%20AND%20kind=\"VULNERABILITY\"" \
+          "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)" \
           | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
