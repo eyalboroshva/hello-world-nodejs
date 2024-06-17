@@ -37,4 +37,4 @@ jobs:
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --add-annotation run.googleapis.com/vpc-access-egress=all
+          --update-annotations run.googleapis.com/vpc-access-egress=all
