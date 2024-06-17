@@ -9,25 +9,11 @@ jobs:
   build_and_scan:
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
-      security-events: write
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
-    # CodeQL analysis
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: javascript
-
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
 
     - name: Log in to Google Cloud
       uses: google-github-actions/auth@v0.4.0
@@ -45,3 +31,15 @@ jobs:
     - name: Push Docker image
       run: |
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
+
+    - name: Trigger Container Analysis Scan
+      run: |
+        IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)' || exit 1
+        gcloud beta container images scan $IMAGE_URI
+
+    - name: Get Vulnerability Report
+      run: |
+        IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        gcloud beta container images list-vulnerabilities $IMAGE_URI --format=json > vulnerability_report.json
+        cat vulnerability_report.json
