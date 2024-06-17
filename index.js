@@ -1,42 +1,45 @@
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 8080;
-const mysql = require('mysql');
+name: Build, Scan, and Upload Docker Image to GCR
 
-// Create a connection to the database
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'test'
-});
+on:
+  push:
+    branches:
+      - main
 
-connection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to the database:', err.stack);
-    return;
-  }
-  console.log('Connected to the database as id', connection.threadId);
-});
+jobs:
+  build_and_scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
-});
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-// Vulnerable endpoint
-app.get('/user', (req, res) => {
-  const userId = req.query.id;
-  const query = `SELECT * FROM users WHERE id = ${mysql.escape(userId)}`; // Still vulnerable to SQL injection
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error executing query:', error);
-      res.status(500).send('Internal Server Error');
-      return;
-    }
-    res.json(results);
-  });
-});
+    - name: Log in to Google Cloud
+      uses: google-github-actions/auth@v0.4.0
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`);
-});
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker
+
+    - name: Build Docker image
+      run: |
+        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs .
+
+    - name: Push Docker image
+      run: |
+        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
+
+    - name: Trigger Container Analysis Scan
+      run: |
+        IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)' || exit 1
+        gcloud beta container images scan $IMAGE_URI
+
+    - name: Get Vulnerability Report
+      run: |
+        IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        gcloud beta container images list-vulnerabilities $IMAGE_URI --format=json > vulnerability_report.json
+        cat vulnerability_report.json
