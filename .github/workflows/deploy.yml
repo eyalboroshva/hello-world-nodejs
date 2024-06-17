@@ -1,4 +1,4 @@
-name: Build and Deploy to Cloud Run
+name: Build and Upload Docker Image to GCR
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build_and_deploy:
+  build_and_upload:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,12 +29,3 @@ jobs:
     - name: Push Docker image
       run: |
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
-
-    - name: Deploy to Cloud Run
-      run: |
-        gcloud run deploy hello-world-nodejs \
-          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs \
-          --platform managed \
-          --region us-central1 \
-          --allow-unauthenticated \
-          --update-annotations run.googleapis.com/vpc-access-egress=all
