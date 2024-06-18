@@ -16,13 +16,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
         version: 'latest'
-      env:
-        PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ secrets.GCP_CREDENTIALS }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        export_environment_variables: true
 
     - name: Authenticate Docker with gcloud
       run: |
