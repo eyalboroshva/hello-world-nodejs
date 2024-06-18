@@ -37,6 +37,13 @@ jobs:
       run: |
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
 
+    - name: Debug IMAGE_URI and DIGEST
+      run: |
+        IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        echo "IMAGE_URI: $IMAGE_URI"
+        DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
+        echo "DIGEST: $DIGEST"
+
     - name: Export Vulnerability Report
       run: |
         IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
@@ -45,11 +52,11 @@ jobs:
         ACCESS_TOKEN=$(gcloud auth print-access-token)
         RESOURCE_URL="https://gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
         FILTER="resourceUrl=\"$RESOURCE_URL\" AND kind=\"VULNERABILITY\""
-        curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
-          "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)" \
-          | jq '.' > vulnerability_report.json
+        echo "Fetching vulnerability report..."
+        RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)")
+        echo "API Response: $RESPONSE"
+        echo $RESPONSE | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
-        echo 123
 
     - name: Upload Vulnerability Report
       uses: actions/upload-artifact@v2
