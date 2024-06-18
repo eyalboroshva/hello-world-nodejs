@@ -15,10 +15,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Log in to Google Cloud
-      uses: google-github-actions/auth@v0.4.0
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
       with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        version: 'latest'
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
 
     - name: Configure Docker
       run: |
@@ -44,11 +46,3 @@ jobs:
           "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)" \
           | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
-      env:
-        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ secrets.GCP_SA_KEY }}
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-        CLOUDSDK_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-        CLOUDSDK_CORE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-        GCP_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-        GCLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-        GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
