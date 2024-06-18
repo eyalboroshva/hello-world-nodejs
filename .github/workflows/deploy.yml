@@ -53,9 +53,11 @@ jobs:
         RESOURCE_URL="https://gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
         FILTER="resourceUrl=\"$RESOURCE_URL\" AND kind=\"VULNERABILITY\""
         echo "Fetching vulnerability report..."
+        echo "Request URL: https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)"
         RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)")
         echo "API Response: $RESPONSE"
         echo $RESPONSE | jq '.' > vulnerability_report.json
+        echo "Formatted JSON:"
         cat vulnerability_report.json
 
     - name: Upload Vulnerability Report
