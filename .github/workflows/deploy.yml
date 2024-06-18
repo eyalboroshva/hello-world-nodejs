@@ -49,3 +49,9 @@ jobs:
           "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)" \
           | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
+
+    - name: Upload Vulnerability Report
+      uses: actions/upload-artifact@v2
+      with:
+        name: vulnerability-report
+        path: vulnerability_report.json
