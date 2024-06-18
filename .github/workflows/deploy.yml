@@ -32,14 +32,10 @@ jobs:
       run: |
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
 
-    - name: Pause for 1 minute
-      run: |
-        sleep 60
-
-    - name: Get Vulnerability Report
+    - name: Export Vulnerability Report
       run: |
         IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
-        DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.FULLY_QUALIFIED_DIGEST)')
+        DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
         PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
         ACCESS_TOKEN=$(gcloud auth print-access-token)
         RESOURCE_URL="https://gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
