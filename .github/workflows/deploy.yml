@@ -44,3 +44,11 @@ jobs:
           "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$(echo $FILTER | jq -sRr @uri)" \
           | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
+      env:
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ secrets.GCP_SA_KEY }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        CLOUDSDK_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+        CLOUDSDK_CORE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+        GCP_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+        GCLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+        GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
