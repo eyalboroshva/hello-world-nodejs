@@ -30,10 +30,10 @@ jobs:
         gcloud auth configure-docker me-west1-docker.pkg.dev
     - name: Build Docker image
       run: |
-        docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest .
+        docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs/hello-world-nodejs:latest .
     - name: Push Docker image
       run: |
-        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs/hello-world-nodejs:latest
     - name: Debug IMAGE_URI and DIGEST
       run: |
         IMAGE_URI=me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
