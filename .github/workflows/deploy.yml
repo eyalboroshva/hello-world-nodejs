@@ -30,23 +30,23 @@ jobs:
         gcloud auth configure-docker
     - name: Build Docker image
       run: |
-        docker build -t me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs .
+        docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs .
     - name: Push Docker image
       run: |
-        docker push me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
+        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs
     - name: Debug IMAGE_URI and DIGEST
       run: |
-        IMAGE_URI=me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        IMAGE_URI=me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
         echo "IMAGE_URI: $IMAGE_URI"
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
         echo "DIGEST: $DIGEST"
     - name: Export Vulnerability Report
       run: |
-        IMAGE_URI=me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        IMAGE_URI=me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
         PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
         ACCESS_TOKEN=$(gcloud auth print-access-token)
-        RESOURCE_URL="https://me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
+        RESOURCE_URL="https://me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$DIGEST"
         FILTER="resourceUrl=\"$RESOURCE_URL\" AND kind=\"VULNERABILITY\""
         ENCODED_FILTER=$(jq -sRr @uri <<< "$FILTER")
         echo "Fetching vulnerability report..."
