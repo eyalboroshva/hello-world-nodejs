@@ -34,16 +34,16 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs .
+        docker build -t  me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs .
 
     - name: Push Docker image
       run: |
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        docker push  me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs:latest
 
     - name: Set IMAGE_URI and DIGEST
       id: image_info
       run: |
-        IMAGE_URI=gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs:latest
+        IMAGE_URI=me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs:latest
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
         echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
         echo "DIGEST=$DIGEST" >> $GITHUB_ENV
@@ -52,7 +52,7 @@ jobs:
       run: |
         gcloud container images describe ${{ env.IMAGE_URI }} --format=json > image_info.json
         IMAGE_DIGEST=$(jq -r '.image_summary.fully_qualified_digest' image_info.json)
-        RESOURCE_URL="https://gcr.io/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs@$IMAGE_DIGEST"
+        RESOURCE_URL="https://me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs@$IMAGE_DIGEST"
         FILTER="resourceUrl=\"$RESOURCE_URL\" AND kind=\"VULNERABILITY\""
         gcloud container analysis notes occurrences list \
           --project=${{ secrets.GCP_PROJECT_ID }} \
