@@ -58,8 +58,8 @@ jobs:
         echo 'FILTER' $FILTER
         
         RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$ENCODED_FILTER")
-        echo "API Response: $RESPONSE"
-        echo $RESPONSE | jq '.' > vulnerability_report.json
+        echo "API Response: $RESPONSE" > vulnerability_report.json
+        echo $RESPONSE | jq '.' >> vulnerability_report.json
         cat vulnerability_report.json
     - name: Upload Vulnerability Report
       uses: actions/upload-artifact@v2
