@@ -34,6 +34,11 @@ jobs:
     - name: Push Docker image
       run: |
         docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs/hello-world-nodejs:latest
+    - name: Wait for v-report
+      uses: actions/wait@v1
+      with:
+         time: '120s'
+        
     - name: Debug IMAGE_URI and DIGEST
       run: |
         IMAGE_URI=me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs/hello-world-nodejs:latest
