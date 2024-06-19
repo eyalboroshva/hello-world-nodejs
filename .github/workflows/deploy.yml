@@ -60,7 +60,7 @@ jobs:
         echo 'RESOURCE_URL' $RESOURCE_URL
         echo 'FILTER' $FILTER
         
-        RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$ENCODED_FILTER")
+        RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter='kind="VULNERABILITY" AND resourceUri="https://me-west1-docker.pkg.dev/poc-github/hello-world-nodejs/hello-world-nodejs@sha256:278b78d8bc9781217984cdb26dc8a7ff6dec049799599ba7b2fe5fec4daff7ff"' --format=json me-west1-docker.pkg.dev/poc-github/hello-world-nodejs/hello-world-nodejs")
         echo "API Response: $RESPONSE" > vulnerability_report.json
         echo $RESPONSE | jq '.' >> vulnerability_report.json
         cat vulnerability_report.json
