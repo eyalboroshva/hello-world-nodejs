@@ -27,7 +27,7 @@ jobs:
 
     - name: Configure Docker
       run: |
-        gcloud auth configure-docker
+        gcloud auth configure-docker me-west1-docker.pkg.dev
     - name: Build Docker image
       run: |
         docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/hello-world-nodejs .
