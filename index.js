@@ -1,4 +1,4 @@
-name: Build, Scan, and Upload Docker Image to GCR
+name: Build, Scan, and Upload Docker Image to GCR!
 
 on:
   push:
