@@ -51,6 +51,12 @@ jobs:
         ENCODED_FILTER=$(jq -sRr @uri <<< "$FILTER")
         echo "Fetching vulnerability report..."
         echo "Request URL: https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$ENCODED_FILTER"
+        echo 'IMAGE_URI' $IMAGE_URI
+        echo 'DIGEST' $DIGEST
+        echo 'PROJECT_ID' $PROJECT_ID
+        echo 'RESOURCE_URL' $RESOURCE_URL
+        echo 'FILTER' $FILTER
+        
         RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$ENCODED_FILTER")
         echo "API Response: $RESPONSE"
         echo $RESPONSE | jq '.' > vulnerability_report.json
