@@ -1,68 +1,62 @@
-name: CI
+name: Build, Scan, and Upload Docker Image to GCR
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
 jobs:
   build_and_scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
-        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
 
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
         version: 'latest'
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        export_environment_variables: true
 
-    - name: Authenticate Docker with gcloud
+    - name: Configure Docker
       run: |
         gcloud auth configure-docker
-
     - name: Build Docker image
       run: |
-        docker build -t  me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs .
-
+        docker build -t me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs .
     - name: Push Docker image
       run: |
-        docker push  me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs:latest
-
-    - name: Set IMAGE_URI and DIGEST
-      id: image_info
+        docker push me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs
+    - name: Debug IMAGE_URI and DIGEST
+      run: |
+        IMAGE_URI=me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs:latest
+        echo "IMAGE_URI: $IMAGE_URI"
+        DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
+        echo "DIGEST: $DIGEST"
+    - name: Export Vulnerability Report
       run: |
         IMAGE_URI=me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs:latest
         DIGEST=$(gcloud container images describe $IMAGE_URI --format='value(image_summary.fully_qualified_digest)')
-        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-        echo "DIGEST=$DIGEST" >> $GITHUB_ENV
-
-    - name: Fetch vulnerability report using gcloud
-      run: |
-        gcloud container images describe ${{ env.IMAGE_URI }} --format=json > image_info.json
-        IMAGE_DIGEST=$(jq -r '.image_summary.fully_qualified_digest' image_info.json)
-        RESOURCE_URL="https://me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs@$IMAGE_DIGEST"
+        PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+        ACCESS_TOKEN=$(gcloud auth print-access-token)
+        RESOURCE_URL="https://me-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/hello-world-nodejs@$DIGEST"
         FILTER="resourceUrl=\"$RESOURCE_URL\" AND kind=\"VULNERABILITY\""
-        gcloud container analysis notes occurrences list \
-          --project=${{ secrets.GCP_PROJECT_ID }} \
-          --filter="$FILTER" \
-          --format=json > vulnerability_report.json
+        ENCODED_FILTER=$(jq -sRr @uri <<< "$FILTER")
+        echo "Fetching vulnerability report..."
+        echo "Request URL: https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$ENCODED_FILTER"
+        RESPONSE=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "https://containeranalysis.googleapis.com/v1/projects/$PROJECT_ID/occurrences?filter=$ENCODED_FILTER")
+        echo "API Response: $RESPONSE"
+        echo $RESPONSE | jq '.' > vulnerability_report.json
         cat vulnerability_report.json
-
-    - name: Upload vulnerability report
+    - name: Upload Vulnerability Report
       uses: actions/upload-artifact@v2
       with:
         name: vulnerability-report
         path: vulnerability_report.json
-        if-no-files-found: warn
